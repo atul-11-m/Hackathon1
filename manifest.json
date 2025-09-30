@@ -1,0 +1,12 @@
+{
+  "manifest_version": 3,
+  "name": "Simplifi",
+  "version": "1.0",
+  "permissions": ["contextMenus", "scripting", "activeTab"],
+  "host_permissions": [
+    "https://generativelanguage.googleapis.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  }
+}
