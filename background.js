@@ -1,7 +1,6 @@
-// ✅ Replace with your API Key 2 (inside quotes)
 const GEMINI_API_KEY = "AIzaSyB6g1Uuq3oHyfl6F7u5PmoEw8Q0hHH7op8";
 
-// Difficulty levels
+//setting the various difficulty levels 
 const levels = [
   { id: "level-5", title: "Explain like I'm 5" },
   { id: "level-middle", title: "Middle School" },
@@ -10,7 +9,7 @@ const levels = [
   { id: "level-phd", title: "PhD" }
 ];
 
-// Create context menu with sub-options
+//creating the context menu
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.create({
     id: "rootExplain",
@@ -28,7 +27,7 @@ chrome.runtime.onInstalled.addListener(() => {
   });
 });
 
-// When user clicks a level
+//scripting the click action for a particular level
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   const level = levels.find(l => l.id === info.menuItemId);
   if (level && info.selectionText) {
@@ -36,13 +35,48 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 
     chrome.scripting.executeScript({
       target: { tabId: tab.id },
-      func: (text, level) => alert(`(${level}) Explanation:\n\n${text}`),
+      func: (text, level) => {
+
+        //initializing popup window
+        const box = document.createElement('div');
+        box.id = 'explainBox';
+        box.innerHTML = `<strong>${level}:</strong> ${text}`;
+
+        
+                
+        //setting box styles
+        box.style.setProperty('font-family', '"Lucida Console", "Courier New", monospace;');
+        box.style.position = 'fixed';
+        box.style.bottom = '20px';
+        box.style.right = '20px';
+        box.style.background = 'rgb(235, 221, 199)';
+        box.style.border = '2px solid #333';
+        box.style.borderRadius = '8px';
+        box.style.padding = '15px';
+        box.style.boxShadow = '0 4px 10px rgba(109, 179, 79, 0.2)';
+        box.style.maxWidth = '500px';
+        box.style.height = '500px';
+        box.style.zIndex = 9999;
+        box.style.fontSize = '14px';
+        box.style.color = 'rgb(2, 80, 86)';
+        
+        //close button
+        const closeBtn = document.createElement('span');
+        closeBtn.textContent = '✖';
+        closeBtn.style.cursor = 'pointer';
+        closeBtn.style.float = 'right';
+        closeBtn.style.marginLeft = '10px';
+        closeBtn.addEventListener('click', () => box.remove());
+        box.prepend(closeBtn);
+
+        document.body.appendChild(box);
+      },
       args: [explanation, level.title]
     });
   }
 });
 
-// Function that calls Gemini API
+//calling the gemini api
 async function explainAtLevel(text, level) {
   try {
     const response = await fetch(
