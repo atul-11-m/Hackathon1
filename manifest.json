@@ -5,9 +5,21 @@
   "version": "1.0",
   "permissions": ["contextMenus","scripting","activeTab","storage"],
   "host_permissions": ["https://generativelanguage.googleapis.com/*"],
+  "icons": {
+    "32": "assets/simplifi32.png",
+    "16": "assets/simplifi16.png"
+
+  },
   "background": {
     "service_worker": "background.js"
+  },
+  "web_accessible_resources": [
+  {
+    "resources": ["assets/simplifi16.png"],
+    "matches": ["<all_urls>"]
   }
+]
+
 }
 
 

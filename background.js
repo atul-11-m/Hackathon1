@@ -2,11 +2,10 @@ const GEMINI_API_KEY = "AIzaSyB6g1Uuq3oHyfl6F7u5PmoEw8Q0hHH7op8";
 
 //defining all the difficulty levels 
 const levels = [
-  { id: "level-5", title: "Explain like I'm 5" },
+  { id: "level-5", title: "Explain like I'm 10" },
   { id: "level-middle", title: "Middle School" },
   { id: "level-high", title: "High School" },
   { id: "level-uni", title: "University" },
-  { id: "level-phd", title: "PhD" }
 ];
 
 //adding the menu to select the context level
@@ -48,46 +47,60 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   });
 });
 
-//created the injected ui
 function injectUI(text, levelTitle) {
-  
-
-  //explanation box 
+  //explantion box 
   const box = document.createElement("div");
   box.id = "explainBox";
-  box.innerHTML = `<strong>${levelTitle}:</strong> ${text}<br><br>`;
 
-  //stlying the box
-  Object.assign(box.style, {
-    fontFamily: '"Lucida Console", "Courier New", monospace',
-    position: "fixed",
-    bottom: "20px",
-    right: "20px",
-    background: "rgb(235, 221, 199)",
-    border: "2px solid #333",
-    borderRadius: "8px",
-    padding: "15px",
-    boxShadow: "0 4px 10px rgba(109, 179, 79, 0.2)",
-    maxWidth: "500px",
-    height: "500px",
-    overflowY: "auto",
-    zIndex: 9999,
-    fontSize: "14px",
-    color: "rgb(2, 80, 86)"
-  });
+  //creating a container for the box header
+  const header = document.createElement('div');
+  header.style.display = 'flex';
+  header.style.alignItems = 'center';
+  header.style.justifyContent = 'space-between';
+  header.style.marginBottom = '12px';
+
+  //logo + title wrapper
+  const leftHeader = document.createElement('div');
+  leftHeader.style.display = 'flex';
+  leftHeader.style.alignItems = 'center';
+
+  //adding logo image
+  const logo = document.createElement('img');
+  logo.src = chrome.runtime.getURL("assets/simplifi16.png"); 
+  logo.style.width = '18px';
+  logo.style.height = '18px';
+  logo.style.marginRight = '8px';
+
+  //adding simplifi to heading 
+  const title = document.createElement('span');
+  title.textContent = "Simplifi";
+  title.style.fontWeight = 'bold';
+  title.style.fontSize = '16px';
+  title.style.color = '#025056';
+
+  leftHeader.appendChild(logo);
+  leftHeader.appendChild(title);
 
   //X button
   const closeBtn = document.createElement("span");
   closeBtn.textContent = "✖";
   Object.assign(closeBtn.style, {
     cursor: "pointer",
-    float: "right",
+    fontSize: "16px",
+    color: "#333",
     marginLeft: "10px"
   });
   closeBtn.addEventListener("click", () => box.remove());
-  box.prepend(closeBtn);
 
-  //creating a button to view saved searches 
+  //assemble header
+  header.appendChild(leftHeader);
+  header.appendChild(closeBtn);
+
+  //explanation text
+  const explanationText = document.createElement("div");
+  explanationText.innerHTML = `<strong>${levelTitle}:</strong> ${text}<br><br>`;
+
+  //view saved button
   const viewBtn = document.createElement("button");
   viewBtn.textContent = "📂 View Saved";
   Object.assign(viewBtn.style, {
@@ -99,9 +112,32 @@ function injectUI(text, levelTitle) {
     color: "white",
     cursor: "pointer"
   });
+
+  //box styling
+  Object.assign(box.style, {
+    fontFamily: '"Lucida Console", "Courier New", monospace',
+    position: "fixed",
+    bottom: "20px",
+    right: "20px",
+    background: "rgb(235, 221, 199)",
+    border: "2px solid #333",
+    borderRadius: "8px",
+    padding: "15px",
+    boxShadow: "0 4px 10px rgba(109, 179, 79, 0.2)",
+    maxWidth: "500px",
+    height: "200px",
+    overflowY: "auto",
+    zIndex: 9999,
+    fontSize: "14px",
+    color: "rgb(2, 80, 86)"
+  });
+
+  //build the box
+  box.appendChild(header);
+  box.appendChild(explanationText);
   box.appendChild(viewBtn);
 
-  //scripting click for the saved search box
+  // saved view popup
   viewBtn.addEventListener("click", () => {
     if (document.getElementById("savedBox")) return;
 
@@ -135,7 +171,7 @@ function injectUI(text, levelTitle) {
       marginLeft: "10px"
     });
     closeSaved.addEventListener("click", () => savedBox.remove());
-    savedBox.prepend(closeSaved);
+    savedBox.appendChild(closeSaved);
 
     //fetching saved explanations
     chrome.storage.local.get("explanations", (data) => {
@@ -157,6 +193,7 @@ function injectUI(text, levelTitle) {
 
   document.body.appendChild(box);
 }
+
 
 //calling the gemini api
 async function explainAtLevel(text, level) {
