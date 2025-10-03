@@ -33,17 +33,11 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 
   const explanation = await explainAtLevel(info.selectionText, level.title);
 
-  //saving explanation
-  chrome.storage.local.get("explanations", (data) => {
-    const items = data.explanations || [];
-    items.push({ level: level.title, text: explanation });
-    chrome.storage.local.set({ explanations: items }, () => {
-      chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        func: injectUI,
-        args: [explanation, level.title]
-      });
-    });
+  //executing the inject script
+  chrome.scripting.executeScript({
+    target: { tabId: tab.id },
+    func: injectUI,
+    args: [explanation, level.title]
   });
 });
 
@@ -102,9 +96,9 @@ function injectUI(text, levelTitle) {
 
   //view saved button
   const viewBtn = document.createElement("button");
-  viewBtn.textContent = "📂 View Saved";
+  viewBtn.textContent = "🗄️ View Saved";
   Object.assign(viewBtn.style, {
-    marginTop: "10px",
+    marginTop: "5px",
     padding: "6px 10px",
     border: "none",
     borderRadius: "4px",
@@ -113,6 +107,41 @@ function injectUI(text, levelTitle) {
     cursor: "pointer"
   });
 
+  //creating the save button
+  const saveBtn = document.createElement("button");
+  saveBtn.textContent = "📩 Save";
+  Object.assign(saveBtn.style, {
+    marginTop: "10px",
+    marginRight: "10px",
+    padding: "6px 10px",
+    border: "none",
+    borderRadius: "4px",
+    background: "#025056",
+    color: "white",
+    cursor: "pointer"
+  });
+
+  //creating message to alert user that explanation was saved
+  const statusMsg = document.createElement("div");
+  statusMsg.style.marginTop = "3px";
+  statusMsg.style.color = "blue";
+  statusMsg.style.fontSize = "15px";
+  box.appendChild(statusMsg);
+
+
+  //scripting eventlistener to save when the button gets clicked + fades out after 2 secs
+  saveBtn.addEventListener("click", () => {
+    chrome.storage.local.get("explanations", (data) => {
+      const items = data.explanations || [];
+      items.push({ level: levelTitle, text });
+      chrome.storage.local.set({ explanations: items }, () => {
+      statusMsg.textContent = "Saved!";
+      setTimeout(() => statusMsg.textContent = "", 2000); 
+      });
+    });
+  });
+
+  
   //box styling
   Object.assign(box.style, {
     fontFamily: '"Lucida Console", "Courier New", monospace',
@@ -125,7 +154,7 @@ function injectUI(text, levelTitle) {
     padding: "15px",
     boxShadow: "0 4px 10px rgba(109, 179, 79, 0.2)",
     maxWidth: "500px",
-    height: "200px",
+    height: "300px",
     overflowY: "auto",
     zIndex: 9999,
     fontSize: "14px",
@@ -135,7 +164,9 @@ function injectUI(text, levelTitle) {
   //build the box
   box.appendChild(header);
   box.appendChild(explanationText);
+  box.appendChild(saveBtn);
   box.appendChild(viewBtn);
+  box.appendChild(statusMsg);
 
   // saved view popup
   viewBtn.addEventListener("click", () => {
