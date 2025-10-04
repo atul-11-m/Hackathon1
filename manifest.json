@@ -13,13 +13,8 @@
   "background": {
     "service_worker": "background.js"
   },
-  "content_scripts":[
-    {
-      "matches": ["<all_urls>"],
-      "js": ["content.js"],
-      "css": ["style.css"]
-    }
-  ],
+  
+  
   "web_accessible_resources": [
   {
     "resources": ["assets/simplifi16.png"],
